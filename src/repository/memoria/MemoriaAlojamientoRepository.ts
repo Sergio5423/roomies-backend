@@ -1,3 +1,4 @@
+//src/repository/memoria/MemoriaAlojamientoRepository
 import type { IAlojamientoRepository } from '../IAlojamientoRepository';
 import type { IPropietarioRepository } from '../IPropietarioRepository';
 import type { Alojamiento } from '../../models/Alojamiento/Alojamiento';

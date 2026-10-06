@@ -1,0 +1,100 @@
+# ==========================================
+# ARCHIVOS GENERALES Y DEL SISTEMA
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.bak
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+
+# ==========================================
+# BACKEND: JAVA (Maven & Gradle)
+# ==========================================
+# Archivos de compilación y salida
+target/
+build/
+bin/
+out/
+
+# Maven Wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle Wrapper
+.gradle/
+gradle-app.setting
+
+# Reportes y cobertura de tests
+*.clover
+.suite/
+jacoco.exec
+*.dump
+
+
+# ==========================================
+# FRONTEND: REACT (Node, Vite, Next.js, CRA)
+# ==========================================
+# Dependencias
+node_modules/
+/.pnp
+.pnp.js
+
+# Salidas de producción / build de React
+/dist
+/build
+/.next/
+/out
+/.nuxt/
+/.storybook-out
+
+# Caché de herramientas
+.npm
+.eslintcache
+.stylelintcache
+.turbo
+.parcel-cache
+.vite/
+
+
+# ==========================================
+# IDEs Y EDITORES DE CÓDIGO
+# ==========================================
+# Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace

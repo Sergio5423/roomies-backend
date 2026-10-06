@@ -3,8 +3,26 @@ import { MemoriaAlojamientoRepository } from '../memoria/MemoriaAlojamientoRepos
 import { MemoriaPropietarioRepository } from '../memoria/MemoriaPropietarioRepository';
 
 export class MemoriaRepositorioFactory implements IRepositorioFactory {
-  private readonly propietarios = new MemoriaPropietarioRepository();
-  private readonly alojamientos = new MemoriaAlojamientoRepository(this.propietarios);
-  crearAlojamientoRepository() { return this.alojamientos; }
-  crearPropietarioRepository() { return this.propietarios; }
+  // 1. Instancia única guardada estáticamente
+  private static instance: MemoriaRepositorioFactory;
+
+  private readonly propietarios: MemoriaPropietarioRepository;
+  private readonly alojamientos: MemoriaAlojamientoRepository;
+
+  // 2. Constructor PRIVADO
+  private constructor() {
+    this.propietarios = new MemoriaPropietarioRepository();
+    this.alojamientos = new MemoriaAlojamientoRepository(this.propietarios);
+  }
+
+  // 3. Método de acceso global
+  public static getInstance(): MemoriaRepositorioFactory {
+    if (!MemoriaRepositorioFactory.instance) {
+      MemoriaRepositorioFactory.instance = new MemoriaRepositorioFactory();
+    }
+    return MemoriaRepositorioFactory.instance;
+  }
+
+  public crearAlojamientoRepository() { return this.alojamientos; }
+  public crearPropietarioRepository() { return this.propietarios; }
 }

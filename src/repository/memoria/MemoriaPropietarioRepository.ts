@@ -1,3 +1,4 @@
+//src/repository/memoria/MemoriaPropietarioRepository
 import type { IPropietarioRepository } from '../IPropietarioRepository';
 import type { Propietario } from '../../models/Usuario/Propietario';
 
