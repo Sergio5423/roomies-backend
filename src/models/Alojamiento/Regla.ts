@@ -12,4 +12,12 @@ export class Regla {
     //this.nombre = nombre;
     this.descripcion = descripcion;
   }
+
+  public getId(): string {
+    return this.id;
+  }
+
+  public getDescripcion(): string {
+    return this.descripcion;
+  }
 }

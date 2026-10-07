@@ -114,4 +114,34 @@ export class AlojamientoController {
       res.status(404).json({ error: error.message });
     }
   }
+
+  public duplicar = async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: "Usuario no autenticado" });
+        return;
+      }
+
+      const alojamientoIdOriginal = req.params.id;
+      const propietarioId = req.user.id;
+
+      if (!alojamientoIdOriginal || typeof alojamientoIdOriginal !== 'string') {
+        res.status(400).json({ error: "El ID proporcionado no es válido" });
+        return;
+      }
+
+      // Llamada al servicio que ejecuta el clonar() (Prototype)
+      const alojamientoClonado = await this.alojamientoService.duplicarAlojamiento(
+        alojamientoIdOriginal,
+        propietarioId
+      );
+
+      res.status(201).json({
+        mensaje: "Alojamiento duplicado con éxito",
+        data: alojamientoClonado
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
 }
