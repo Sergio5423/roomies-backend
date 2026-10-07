@@ -52,67 +52,74 @@ npm run dev
   "Bearer Token retornado por el login o registro"
 
 ## Alojamientos
- ### Cambiar Estado
- **PATCH**
- http://localhost:3000/api/alojamientos/{id-propietario}/estado
+  ### Cambiar Estado
+  **PATCH**
+  http://localhost:3000/api/alojamientos/{id-propietario}/estado
 
- **Body**
- "Bearer Token retornado por el login o registro"
- {
+  **Body**
+  "Bearer Token retornado por el login o registro"
+  {
   "nuevoEstado": "ocupado"
- }
-
-### Actualizar Alojamiento
-**PUT**
-http://localhost:3000/api/alojamientos/{id-propietario}
-
-**Body**
-"Bearer Token retornado por el login o registro"
-{
-  "titulo": "Apartamento Amoblado Centro - Modificado",
-  "descripcion": "Nueva descripción del apartamento",
-  "precio": {
-    "precioMensual": 900000
   }
+
+  ### Actualizar Alojamiento
+  **PUT**
+  http://localhost:3000/api/alojamientos/{id-propietario}
+
+  **Body**
+  "Bearer Token retornado por el login o registro"
+  {
+    "titulo": "Apartamento Amoblado Centro - Modificado",
+    "descripcion": "Nueva descripción del apartamento",
+    "precio": {
+      "precioMensual": 900000
+    }
+  }
+
+  ### Listar Alojamietnos
+  **GET**
+  http://localhost:3000/api/alojamientos
+
+  **Sin body disponible para todos sin autenticar**
+
+  ### Nuevo Alojamiento
+  **POST**
+  http://localhost:3000/api/alojamientos
+
+  **Body**
+  "Bearer Token del propietario retornado por el login o registro"
+  {
+    "titulo": "Apartamento Amoblado Centro",
+    "descripcion": "Apartamento amplio cerca de la universidad",
+    "tipoAlojamiento": "Apartamento",
+    "imagenes": ["https://ejemplo.com/foto1.jpg"],
+    "ubicacion": {
+      "direccion": "Calle 16 # 12-30",
+      "ciudad": "Valledupar",
+      "barrio": "Centro",
+      "distancia": "5 mins a la universidad",
+      "latitud": 10.463,
+      "longitud": -73.253
+    },
+    "caracteristica": {
+      "numeroCuartos": 2,
+      "metrosCuadrados": 65,
+      "capacidad": 3,
+      "amoblado": true,
+      "buscandoRoomie": false
+    },
+    "precio": {
+      "precioMensual": 850000
+    },
+    "reglas": [
+      "No fumar",
+      "No se permiten mascotas"
+    ]
 }
 
-### Listar Alojamietnos
-**GET**
-http://localhost:3000/api/alojamientos
-
-**Sin body disponible para todos sin autenticar**
-
-### Nuevo Alojamiento
+### Duplicar Alojamiento
 **POST**
-http://localhost:3000/api/alojamientos
+http://localhost:3000/api/alojamientos/{id-alojamiento}/duplicar
 
-**Body**
-"Bearer Token del propietario retornado por el login o registro"
-{
-  "titulo": "Apartamento Amoblado Centro",
-  "descripcion": "Apartamento amplio cerca de la universidad",
-  "tipoAlojamiento": "Apartamento",
-  "imagenes": ["https://ejemplo.com/foto1.jpg"],
-  "ubicacion": {
-    "direccion": "Calle 16 # 12-30",
-    "ciudad": "Valledupar",
-    "barrio": "Centro",
-    "distancia": "5 mins a la universidad",
-    "latitud": 10.463,
-    "longitud": -73.253
-  },
-  "caracteristica": {
-    "numeroCuartos": 2,
-    "metrosCuadrados": 65,
-    "capacidad": 3,
-    "amoblado": true,
-    "buscandoRoomie": false
-  },
-  "precio": {
-    "precioMensual": 850000
-  },
-  "reglas": [
-    "No fumar",
-    "No se permiten mascotas"
-  ]
-}
+**Header**
+- Authorization: Bearer {token}
