@@ -3,19 +3,19 @@ import type { Request, Response, NextFunction } from 'express'
 import cors from 'cors';
 
 // Repositorios de Persistencia (Supabase)
-import { repositorioFactory } from './src/config/repositorios';
+import { repositorioFactory } from './config/repositorios';
 
 // Servicios y Controladores
-import { AlojamientoService } from './src/services/Alojamiento/alojamiento.service';
-import { AlojamientoController } from './src/controllers/Alojamiento/alojamiento.controller';
+import { AlojamientoService } from './services/Alojamiento/alojamiento.service';
+import { AlojamientoController } from './controllers/Alojamiento/alojamiento.controller';
 
 // Rutas
-import authRoutes from './src/routes/auth.routes';
-import userRoutes from './src/routes/user.routes';
+import authRoutes from './routes/auth.routes';
+import userRoutes from './routes/user.routes';
 
 // Middlewares
-import { authenticateToken } from './src/middlewares/auth.middleware';
-import { authorizeRoles } from './src/middlewares/role.middleware';
+import { authenticateToken } from './middlewares/auth.middleware';
+import { authorizeRoles } from './middlewares/role.middleware';
 
 const app = express();
 const router = express.Router();
