@@ -1,34 +1,38 @@
-import { Regla } from "./Regla";
+// src/models/Alojamiento/TipoAlojamiento.ts
+import type { Regla } from "./Regla";
+import type { IPoliticaContrato } from "../Bridge/IPoliticaContrato";
 
 export abstract class TipoAlojamiento {
+  private serviciosEspecificos: string[] = [];
+  private reglasEspecificas: Regla[] = [];
+  
+  // EL PUENTE (Bridge)
+  protected politicaContrato: IPoliticaContrato;
 
-    private serviciosEspecificos: string[] = [];
-    private contratoAnual: boolean = false;
-    private reglasEspecificas: Regla[] = [];
+  constructor(politicaContrato: IPoliticaContrato) {
+    this.politicaContrato = politicaContrato;
+  }
 
-    public abstract getNombre(): string;
+  public abstract getNombre(): string;
 
-    public getServicios(): string[] {
-        return this.serviciosEspecificos;
-    }
+  // Delega la responsabilidad de la política al puente
+  public getContratoAnual(): boolean {
+    return this.politicaContrato.requiereContratoAnual();
+  }
 
-    public setServicios(servicios: string[]): void {
-        this.serviciosEspecificos = servicios;
-    }
+  public setReglas(reglas: Regla[]): void {
+    // Filtra las reglas válidas según la política asignada
+    this.reglasEspecificas = reglas.filter(r => 
+      this.politicaContrato.validarReglaPermitida(r.getDescripcion())
+    );
+  }
 
-    public getContratoAnual(): boolean {
-        return this.contratoAnual;
-    }
+  public getReglas(): Regla[] {
+    return this.reglasEspecificas;
+  }
 
-    setContratoAnual(contrato: boolean): void {
-        this.contratoAnual = contrato;
-    }
-
-    public getReglas(): Regla[] {
-        return this.reglasEspecificas;
-    }
-
-    setReglas(reglas: Regla[]): void {
-        this.reglasEspecificas = reglas;
-    }
+  public getServicios(): string[] { return this.serviciosEspecificos; }
+  public setServicios(servicios: string[]): void { this.serviciosEspecificos = servicios; }
+  
+  public getPolitica(): IPoliticaContrato { return this.politicaContrato; }
 }

@@ -1,10 +1,14 @@
+// src/models/Alojamiento/Apartamento.ts
 import { TipoAlojamiento } from "./TipoAlojamiento";
+import { PoliticaEstricta } from "../Bridge/PoliticaEstricta";
+import type { IPoliticaContrato } from "../Bridge/IPoliticaContrato";
 
 export class Apartamento extends TipoAlojamiento {
+  constructor(politica: IPoliticaContrato = new PoliticaEstricta()) {
+    super(politica);
+  }
 
-    private nombre: string = "Apartamento";
-
-    public getNombre(): string {
-        return this.nombre;
-    }
+  public getNombre(): string {
+    return "Apartamento";
+  }
 }
