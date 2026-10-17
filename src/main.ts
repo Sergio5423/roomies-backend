@@ -83,6 +83,14 @@ router.patch(
   (req: Request, res: Response) => alojamientoController.cambiarEstado(req, res)
 );
 
+// POST - Duplicar/Clonar un alojamiento existente (Patrón Prototype)
+router.post(
+  '/alojamientos/:id/duplicar', 
+  authenticateToken, 
+  authorizeRoles('ARRENDATARIO'), 
+  (req: Request, res: Response) => alojamientoController.duplicar(req, res)
+);
+
 app.use('/api', router);
 
 // ==========================================

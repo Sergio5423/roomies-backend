@@ -156,4 +156,24 @@ export class AlojamientoService {
   public async obtenerPorId(id: string): Promise<Alojamiento | null> {
     return await this.alojamientoRepository.obtenerPorId(id);
   }
+
+  public async duplicarAlojamiento(alojamientoIdOriginal: string, propietarioId: string): Promise<Alojamiento> {
+    // 1. Buscar la publicación original
+    const original = await this.alojamientoRepository.obtenerPorId(alojamientoIdOriginal);
+    if (!original) {
+      throw new Error("El alojamiento a duplicar no existe.");
+    }
+
+    // 2. Aplicar el patrón Prototype
+    const copia = original.clonar();
+
+    // 3. Vincular con el propietario y guardar
+    const propietario = await this.propietarioRepository.obtenerPorId(propietarioId);
+    if (!propietario) {
+      throw new Error("Propietario no encontrado");
+    }
+    propietario.publicarAlojamiento(copia);
+
+    return await this.alojamientoRepository.guardar(copia, propietarioId);
+  }
 }
