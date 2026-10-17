@@ -68,17 +68,24 @@ export class AlojamientoController {
 
   public actualizar = async (req: Request, res: Response): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({ error: "Usuario no autenticado" });
+        return;
+      }
+
       const alojamientoId = req.params.id;
+      const propietarioId = req.user.id;
+      const datosActualizados = req.body;
 
       if (!alojamientoId || typeof alojamientoId !== 'string') {
         res.status(400).json({ error: "El ID proporcionado no es válido" });
         return;
       }
 
-      const datosActualizados = req.body;
-
+      // Validamos que pertenezca al propietario antes de actualizar
       const alojamiento = await this.alojamientoService.actualizarAlojamiento(
         alojamientoId,
+        propietarioId, // <-- Pasamos el ID del dueño para validar
         datosActualizados
       );
 
@@ -87,13 +94,19 @@ export class AlojamientoController {
         data: alojamiento
       });
     } catch (error: any) {
-      res.status(404).json({ error: error.message });
+      res.status(403).json({ error: error.message }); // 403 Forbidden si no es suyo
     }
   }
 
   public cambiarEstado = async (req: Request, res: Response): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({ error: "Usuario no autenticado" });
+        return;
+      }
+
       const alojamientoId = req.params.id;
+      const propietarioId = req.user.id;
       const { nuevoEstado } = req.body;
 
       if (!alojamientoId || typeof alojamientoId !== 'string') {
@@ -101,8 +114,10 @@ export class AlojamientoController {
         return;
       }
 
+      // Validamos que pertenezca al propietario antes de cambiar estado
       const alojamiento = await this.alojamientoService.cambiarEstado(
         alojamientoId,
+        propietarioId, // <-- Pasamos el ID del dueño para validar
         nuevoEstado
       );
 
@@ -111,7 +126,7 @@ export class AlojamientoController {
         data: alojamiento
       });
     } catch (error: any) {
-      res.status(404).json({ error: error.message });
+      res.status(403).json({ error: error.message });
     }
   }
 
@@ -130,7 +145,7 @@ export class AlojamientoController {
         return;
       }
 
-      // Llamada al servicio que ejecuta el clonar() (Prototype)
+      // La duplicación (Prototype) también valida que el propietario sea el dueño del original
       const alojamientoClonado = await this.alojamientoService.duplicarAlojamiento(
         alojamientoIdOriginal,
         propietarioId
@@ -141,7 +156,33 @@ export class AlojamientoController {
         data: alojamientoClonado
       });
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      res.status(403).json({ error: error.message });
+    }
+  }
+
+  public eliminar = async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: "Usuario no autenticado" });
+        return;
+      }
+
+      const alojamientoId = req.params.id;
+      const propietarioId = req.user.id;
+
+      if (!alojamientoId || typeof alojamientoId !== 'string') {
+        res.status(400).json({ error: "El ID proporcionado no es válido" });
+        return;
+      }
+
+      // Llamada al servicio que valida y ejecuta la eliminación
+      await this.alojamientoService.eliminarAlojamiento(alojamientoId, propietarioId);
+
+      res.status(200).json({
+        mensaje: "Alojamiento eliminado con éxito"
+      });
+    } catch (error: any) {
+      res.status(403).json({ error: error.message });
     }
   }
 }

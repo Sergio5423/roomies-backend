@@ -6,6 +6,7 @@ import { Precio } from '../models/Alojamiento/Precio';
 
 export interface AlojamientoRegistro {
   id: string;
+  landlord_id?: string;
   title: string;
   description: string;
   type: string;
@@ -31,6 +32,7 @@ export class AlojamientoMapper {
     const c = data.features;
     return new AlojamientoBuilder()
       .conIdentidad(data.id)
+      .conPropietario(data.landlord_id)
       .conDescripcion(data.title, data.description)
       .conTipo(TipoAlojamientoFactory.crear(data.type))
       .conImagenes(data.images ?? [])

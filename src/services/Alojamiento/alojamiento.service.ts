@@ -1,10 +1,10 @@
-import { AlojamientoBuilder } from '../../models/Builder/AlojamientoBuilder';
 import { Alojamiento } from '../../models/Alojamiento/Alojamiento';
 import { Ubicacion } from '../../models/Alojamiento/Ubicacion';
 import { Caracteristica } from '../../models/Alojamiento/Caracteristica';
 import { Precio } from '../../models/Alojamiento/Precio';
 import { Regla } from '../../models/Alojamiento/Regla';
 import { TipoAlojamientoFactory } from '../../models/Factory/TipoAlojamientoFactory';
+import { AlojamientoBuilder } from '../../models/Builder/AlojamientoBuilder';
 import type { IAlojamientoRepository } from '../../repository/IAlojamientoRepository';
 import type { IPropietarioRepository } from '../../repository/IPropietarioRepository';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,16 +16,13 @@ export class AlojamientoService {
   ) { }
 
   public async publicarAlojamiento(propietarioId: string, datosAlojamiento: any): Promise<Alojamiento> {
-    // 1. Verificar que el propietario exista en la base de datos
     const propietario = await this.propietarioRepository.obtenerPorId(propietarioId);
     if (!propietario) {
       throw new Error("Propietario no encontrado");
     }
 
-    // 2. Instanciar el TipoAlojamiento mediante la Fábrica
     const instanciaTipo = TipoAlojamientoFactory.crear(datosAlojamiento.tipoAlojamiento);
 
-    // 3. Mapear reglas asociadas al tipo de alojamiento
     if (datosAlojamiento.reglas && Array.isArray(datosAlojamiento.reglas)) {
       const reglasDom: Regla[] = datosAlojamiento.reglas.map(
         (descripcion: string) => new Regla(uuidv4(), descripcion)
@@ -33,7 +30,6 @@ export class AlojamientoService {
       instanciaTipo.setReglas(reglasDom);
     }
 
-    // 4. Construir Value Objects del dominio
     const u = datosAlojamiento.ubicacion || {};
     const ubicacion = new Ubicacion(
       u.direccion || '',
@@ -58,9 +54,9 @@ export class AlojamientoService {
       Number(typeof p === 'object' ? p.precioMensual ?? p.monto : p)
     );
 
-    // 5. Instanciar Entidad de Dominio
     const nuevoAlojamiento = new AlojamientoBuilder()
       .conIdentidad(uuidv4())
+      .conPropietario(propietarioId)
       .conDescripcion(datosAlojamiento.titulo, datosAlojamiento.descripcion)
       .conTipo(instanciaTipo)
       .conImagenes(datosAlojamiento.imagenes || [])
@@ -69,26 +65,32 @@ export class AlojamientoService {
       .conPrecio(precio)
       .construir();
 
-    // 6. Vincular la publicación con el Propietario en memoria/dominio
     propietario.publicarAlojamiento(nuevoAlojamiento);
 
-    // 7. Persistir en Supabase a través del repositorio
-    // Pasar propietarioId como segundo argumento al guardar
     return await this.alojamientoRepository.guardar(nuevoAlojamiento, propietarioId);
   }
 
-  public async actualizarAlojamiento(alojamientoId: string, datosActualizados: any): Promise<Alojamiento> {
+  public async actualizarAlojamiento(alojamientoId: string, propietarioId: string, datosActualizados: any): Promise<Alojamiento> {
     const alojamientoExistente = await this.alojamientoRepository.obtenerPorId(alojamientoId);
     if (!alojamientoExistente) {
       throw new Error("Alojamiento no encontrado");
     }
 
-    // Reconstruir TipoAlojamiento si se envía un cambio, o mantener el actual
+    // Validación de seguridad: Verificar que el propietario exista y sea el dueño que lo publicó
+    const propietario = await this.propietarioRepository.obtenerPorId(propietarioId);
+    if (!propietario) {
+      throw new Error("Propietario no autorizado o no encontrado");
+    }
+
+    const ownerId = alojamientoExistente.getLandlordId();
+    if (ownerId && ownerId !== propietarioId) {
+      throw new Error("No tienes autorización para modificar este alojamiento. Solo el propietario que lo publicó puede modificarlo.");
+    }
+
     const tipo = datosActualizados.tipoAlojamiento
       ? TipoAlojamientoFactory.crear(datosActualizados.tipoAlojamiento)
       : alojamientoExistente.getTipoAlojamiento();
 
-    // Reconstruir Value Objects
     const u = datosActualizados.ubicacion || {};
     const ubicacion = datosActualizados.ubicacion
       ? new Ubicacion(
@@ -117,9 +119,9 @@ export class AlojamientoService {
       ? new Precio(Number(typeof p === 'object' ? p.precioMensual ?? p.monto : p))
       : alojamientoExistente.getPrecio();
 
-    // Instanciar el objeto Alojamiento con los datos nuevos para pasarlo al método de la entidad
     const datosNuevos = new AlojamientoBuilder()
       .conIdentidad(alojamientoExistente.getId())
+      .conPropietario(ownerId || propietarioId)
       .conDescripcion(
         datosActualizados.titulo ?? alojamientoExistente.getTitulo(),
         datosActualizados.descripcion ?? alojamientoExistente.getDescripcion())
@@ -132,16 +134,25 @@ export class AlojamientoService {
       .conPrecio(precio)
       .construir();
 
-    // Mutación en la entidad del dominio
     alojamientoExistente.actualizarAlojamiento(datosNuevos);
 
     return await this.alojamientoRepository.actualizar(alojamientoExistente);
   }
 
-  public async cambiarEstado(alojamientoId: string, nuevoEstado: string): Promise<Alojamiento> {
+  public async cambiarEstado(alojamientoId: string, propietarioId: string, nuevoEstado: string): Promise<Alojamiento> {
     const alojamiento = await this.alojamientoRepository.obtenerPorId(alojamientoId);
     if (!alojamiento) {
       throw new Error("Alojamiento no encontrado");
+    }
+
+    const propietario = await this.propietarioRepository.obtenerPorId(propietarioId);
+    if (!propietario) {
+      throw new Error("Propietario no autorizado");
+    }
+
+    const ownerId = alojamiento.getLandlordId();
+    if (ownerId && ownerId !== propietarioId) {
+      throw new Error("No tienes autorización para cambiar el estado de este alojamiento. Solo el propietario que lo publicó puede modificarlo.");
     }
 
     alojamiento.actualizarEstado(nuevoEstado);
@@ -158,22 +169,43 @@ export class AlojamientoService {
   }
 
   public async duplicarAlojamiento(alojamientoIdOriginal: string, propietarioId: string): Promise<Alojamiento> {
-    // 1. Buscar la publicación original
     const original = await this.alojamientoRepository.obtenerPorId(alojamientoIdOriginal);
     if (!original) {
       throw new Error("El alojamiento a duplicar no existe.");
     }
 
-    // 2. Aplicar el patrón Prototype
-    const copia = original.clonar();
-
-    // 3. Vincular con el propietario y guardar
     const propietario = await this.propietarioRepository.obtenerPorId(propietarioId);
     if (!propietario) {
       throw new Error("Propietario no encontrado");
     }
+
+    const ownerId = original.getLandlordId();
+    if (ownerId && ownerId !== propietarioId) {
+      throw new Error("No tienes autorización para duplicar este alojamiento. Solo el propietario que lo publicó puede duplicarlo.");
+    }
+
+    const copia = original.clonar();
     propietario.publicarAlojamiento(copia);
 
     return await this.alojamientoRepository.guardar(copia, propietarioId);
+  }
+
+  public async eliminarAlojamiento(alojamientoId: string, propietarioId: string): Promise<boolean> {
+    const alojamiento = await this.alojamientoRepository.obtenerPorId(alojamientoId);
+    if (!alojamiento) {
+      throw new Error("El alojamiento no existe o ya fue eliminado.");
+    }
+
+    const propietario = await this.propietarioRepository.obtenerPorId(propietarioId);
+    if (!propietario) {
+      throw new Error("Propietario no autorizado o no encontrado.");
+    }
+
+    const ownerId = alojamiento.getLandlordId();
+    if (ownerId && ownerId !== propietarioId) {
+      throw new Error("No tienes autorización para eliminar este alojamiento. Solo el propietario que lo publicó puede eliminarlo.");
+    }
+
+    return await this.alojamientoRepository.eliminar(alojamientoId);
   }
 }

@@ -17,6 +17,7 @@ export class AlojamientoBuilder {
   private ubicacion?: Ubicacion;
   private caracteristicas?: Caracteristica;
   private precio?: Precio;
+  private landlord_id?: string;
 
   conIdentidad(id: string): this { this.id = id; return this; }
   conDescripcion(titulo: string, descripcion: string): this {
@@ -33,6 +34,8 @@ export class AlojamientoBuilder {
     this.caracteristicas = caracteristicas; return this;
   }
   conPrecio(precio: Precio): this { this.precio = precio; return this; }
+  conPropietario(landlord_id?: string): this { this.landlord_id = landlord_id; return this; }
+
   construir(): Alojamiento {
     if (!this.id?.trim() || !this.titulo?.trim() || this.descripcion === undefined ||
         !this.tipo || !this.ubicacion || !this.caracteristicas || !this.precio) {
@@ -42,8 +45,19 @@ export class AlojamientoBuilder {
       throw new Error('El precio debe ser un número finito no negativo.');
     }
     if (!Number.isFinite(this.fecha.getTime())) throw new Error('Fecha de publicación inválida.');
-    return new Alojamiento(this.id, this.titulo, this.descripcion, this.tipo,
-      [...this.imagenes], this.puntuacion, new Date(this.fecha), this.estado,
-      this.ubicacion, this.caracteristicas, this.precio);
+    return new Alojamiento(
+      this.id,
+      this.titulo,
+      this.descripcion,
+      this.tipo,
+      [...this.imagenes],
+      this.puntuacion,
+      new Date(this.fecha),
+      this.estado,
+      this.ubicacion,
+      this.caracteristicas,
+      this.precio,
+      this.landlord_id
+    );
   }
 }

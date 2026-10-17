@@ -91,6 +91,14 @@ router.post(
   (req: Request, res: Response) => alojamientoController.duplicar(req, res)
 );
 
+// DELETE - Eliminar un alojamiento existente (Protegido por JWT y Rol ARRENDATARIO)
+router.delete(
+  '/alojamientos/:id', 
+  authenticateToken, 
+  authorizeRoles('ARRENDATARIO'), 
+  (req: Request, res: Response) => alojamientoController.eliminar(req, res)
+);
+
 app.use('/api', router);
 
 // ==========================================

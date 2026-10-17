@@ -19,6 +19,8 @@ export class Alojamiento implements Clonable<Alojamiento> {
   private ubicacion: Ubicacion;
   private caracteristicas: Caracteristica;
   private precio: Precio;
+  public landlord_id?: string;
+  public propietarioId?: string;
 
   constructor(
     id: string,
@@ -31,35 +33,35 @@ export class Alojamiento implements Clonable<Alojamiento> {
     estado: string,
     ubicacion: Ubicacion,
     caracteristicas: Caracteristica,
-    precio: Precio
+    precio: Precio,
+    landlord_id?: string
   ) {
     this.id = id;
     this.titulo = titulo;
     this.descripcion = descripcion;
     this.tipoAlojamiento = tipoAlojamiento;
-    this.imagenes = [...imagenes]; // Copia por valor del arreglo de imagenes
+    this.imagenes = [...imagenes];
     this.puntuacionPromedio = puntuacionPromedio;
     this.fechaPublicacion = fechaPublicacion;
     this.estado = estado;
     this.ubicacion = ubicacion;
     this.caracteristicas = caracteristicas;
     this.precio = precio;
+    this.landlord_id = landlord_id;
+    this.propietarioId = landlord_id;
   }
 
   // ==========================================
   // IMPLEMENTACIÓN DEL PATRÓN PROTOTYPE
   // ==========================================
   public clonar(): Alojamiento {
-    // 1. Reinstanciar el TipoAlojamiento clonando sus reglas
     const tipoClonado = TipoAlojamientoFactory.crear(this.tipoAlojamiento.getNombre());
     
-    // Copia profunda de la lista de Reglas asociadas al tipo
     const reglasClonadas = this.getReglas().map(
       (r) => new Regla(uuidv4(), r.getDescripcion())
     );
     tipoClonado.setReglas(reglasClonadas);
 
-    // 2. Clonación profunda de Value Objects
     const ubicacionClonada = new Ubicacion(
       this.ubicacion.getDireccion(),
       this.ubicacion.getCiudad(),
@@ -79,19 +81,19 @@ export class Alojamiento implements Clonable<Alojamiento> {
 
     const precioClonado = new Precio(this.precio.getPrecioMensual());
 
-    // 3. Crear y retornar la nueva instancia clonada con un nuevo ID y fecha actual
     return new Alojamiento(
-      uuidv4(),                             // Nuevo ID único para la copia
-      `Copia de ${this.titulo}`,            // Título distingible
+      uuidv4(),
+      `Copia de ${this.titulo}`,
       this.descripcion,
       tipoClonado,
-      [...this.imagenes],                   // Copia por valor del arreglo
-      0,                                    // La puntuación del clon se reinicia a 0
-      new Date(),                           // Nueva fecha de publicación
-      'DISPONIBLE',                         // Estado por defecto para la nueva publicación
+      [...this.imagenes],
+      0,
+      new Date(),
+      'disponible',
       ubicacionClonada,
       caracteristicasClonadas,
-      precioClonado
+      precioClonado,
+      this.landlord_id
     );
   }
 
@@ -104,6 +106,10 @@ export class Alojamiento implements Clonable<Alojamiento> {
     this.ubicacion = datos.ubicacion;
     this.caracteristicas = datos.caracteristicas;
     this.precio = datos.precio;
+    if (datos.landlord_id) {
+      this.landlord_id = datos.landlord_id;
+      this.propietarioId = datos.landlord_id;
+    }
   }
 
   public actualizarEstado(nuevoEstado: string): void {
@@ -121,6 +127,8 @@ export class Alojamiento implements Clonable<Alojamiento> {
   public getUbicacion(): Ubicacion { return this.ubicacion; }
   public getCaracteristicas(): Caracteristica { return this.caracteristicas; }
   public getPrecio(): Precio { return this.precio; }
+  public getLandlordId(): string | undefined { return this.landlord_id || this.propietarioId; }
+  public getPropietarioId(): string | undefined { return this.propietarioId || this.landlord_id; }
 
   public getTipoAlojamientoNombre(): string {
     return this.tipoAlojamiento.getNombre();
