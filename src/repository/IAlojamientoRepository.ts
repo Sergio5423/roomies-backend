@@ -7,4 +7,5 @@ export interface IAlojamientoRepository {
   listarTodos(): Promise<Alojamiento[]>;
   eliminar(id: string): Promise<boolean>;
   actualizar(alojamiento: Alojamiento): Promise<Alojamiento>;
+  actualizarBusquedaRoomie(id: string, buscandoRoomie: boolean): Promise<boolean>;
 }

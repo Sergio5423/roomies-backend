@@ -100,4 +100,37 @@ async guardar(alojamiento: Alojamiento, propietarioId: string): Promise<Alojamie
 
     return !error;
   }
+
+  async actualizarBusquedaRoomie(id: string, buscandoRoomie: boolean): Promise<boolean> {
+    // 1. Obtener el registro actual para conservar las demás características
+    const { data: current, error: fetchError } = await supabase
+      .from('housing')
+      .select('features')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !current) {
+      throw new Error("Alojamiento no encontrado");
+    }
+
+    const updatedFeatures = {
+      ...current.features,
+      buscandoRoomie
+    };
+
+    // 2. Actualizar en Supabase
+    const { error } = await supabase
+      .from('housing')
+      .update({ 
+        features: updatedFeatures, 
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Error al actualizar el estado de roomie: ${error.message}`);
+    }
+
+    return true;
+  }
 }

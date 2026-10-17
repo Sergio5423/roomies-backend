@@ -17,6 +17,9 @@ import userRoutes from './routes/user.routes';
 import { authenticateToken } from './middlewares/auth.middleware';
 import { authorizeRoles } from './middlewares/role.middleware';
 
+import { RoomieService } from './services/roomie.service';
+import { RoomieController } from './controllers/roomie.controller';
+
 const app = express();
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
@@ -39,6 +42,10 @@ const alojamientoService = new AlojamientoService(
 );
 
 const alojamientoController = new AlojamientoController(alojamientoService);
+
+// Instanciación del servicio y controlador de Roomies
+const roomieService = new RoomieService(alojamientoRepository);
+const roomieController = new RoomieController(roomieService);
 
 // ==========================================
 // 3. Montar Rutas Principales
@@ -97,6 +104,14 @@ router.delete(
   authenticateToken, 
   authorizeRoles('ARRENDATARIO'), 
   (req: Request, res: Response) => alojamientoController.eliminar(req, res)
+);
+
+// PATCH - Un inquilino activa/desactiva la búsqueda de roomie en un alojamiento
+router.patch(
+  '/alojamientos/:id/roomie',
+  authenticateToken,
+  authorizeRoles('ESTUDIANTE'), // O el rol correspondiente al Inquilino
+  (req: Request, res: Response) => roomieController.alternarBusquedaRoomie(req, res)
 );
 
 app.use('/api', router);
