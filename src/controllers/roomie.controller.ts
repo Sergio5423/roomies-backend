@@ -12,9 +12,9 @@ export class RoomieController {
             }
 
             const alojamientoId = req.params.id;
+            const estudianteId = req.user.id; // 👈 ID del estudiante obtenido del token JWT
             const { buscandoRoomie } = req.body;
 
-            // 👇 Validación para asegurar que el ID es un string válido
             if (!alojamientoId || typeof alojamientoId !== 'string') {
                 res.status(400).json({ error: "El ID proporcionado no es válido" });
                 return;
@@ -25,8 +25,7 @@ export class RoomieController {
                 return;
             }
 
-            // TypeScript ahora sabe con certeza que alojamientoId es un string
-            await this.roomieService.cambiarEstadoBusquedaRoomie(alojamientoId, buscandoRoomie);
+            await this.roomieService.cambiarEstadoBusquedaRoomie(alojamientoId, estudianteId, buscandoRoomie);
 
             res.status(200).json({
                 mensaje: `Estado de búsqueda de roomie actualizado a: ${buscandoRoomie}`

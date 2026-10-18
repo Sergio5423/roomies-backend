@@ -8,6 +8,8 @@ import { repositorioFactory } from './config/repositorios';
 // Servicios y Controladores
 import { AlojamientoService } from './services/Alojamiento/alojamiento.service';
 import { AlojamientoController } from './controllers/Alojamiento/alojamiento.controller';
+import { RoomieService } from './services/roomie.service';
+import { RoomieController } from './controllers/roomie.controller';
 
 // Rutas
 import authRoutes from './routes/auth.routes';
@@ -16,9 +18,6 @@ import userRoutes from './routes/user.routes';
 // Middlewares
 import { authenticateToken } from './middlewares/auth.middleware';
 import { authorizeRoles } from './middlewares/role.middleware';
-
-import { RoomieService } from './services/roomie.service';
-import { RoomieController } from './controllers/roomie.controller';
 
 const app = express();
 const router = express.Router();
@@ -37,7 +36,7 @@ const alojamientoRepository = repositorioFactory.crearAlojamientoRepository();
 const propietarioRepository = repositorioFactory.crearPropietarioRepository();
 
 const alojamientoService = new AlojamientoService(
-  alojamientoRepository, 
+  alojamientoRepository,
   propietarioRepository
 );
 
@@ -51,58 +50,58 @@ const roomieController = new RoomieController(roomieService);
 // 3. Montar Rutas Principales
 // ==========================================
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/users', userRoutes); // 👈 Aquí se gestionan /api/users/profile, /api/users/roomies/activos, etc.
 
 // --- Rutas del Módulo de Alojamientos ---
 
 // POST - Publicar un alojamiento (Protegido por JWT y Rol ARRENDATARIO)
 router.post(
-  '/alojamientos', 
-  authenticateToken, 
-  authorizeRoles('ARRENDATARIO'), 
+  '/alojamientos',
+  authenticateToken,
+  authorizeRoles('ARRENDATARIO'),
   (req: Request, res: Response) => alojamientoController.publicar(req, res)
 );
 
 // GET - Consultas de alojamientos
 router.get(
-  '/alojamientos', 
+  '/alojamientos',
   (req: Request, res: Response) => alojamientoController.listarTodos(req, res)
 );
 
 router.get(
-  '/alojamientos/:id', 
+  '/alojamientos/:id',
   (req: Request, res: Response) => alojamientoController.obtenerPorId(req, res)
 );
 
 // PUT - Actualizar alojamiento completo (Protegido por JWT y Rol ARRENDATARIO)
 router.put(
-  '/alojamientos/:id', 
-  authenticateToken, 
-  authorizeRoles('ARRENDATARIO'), 
+  '/alojamientos/:id',
+  authenticateToken,
+  authorizeRoles('ARRENDATARIO'),
   (req: Request, res: Response) => alojamientoController.actualizar(req, res)
 );
 
 // PATCH - Cambiar estado (disponible, ocupado, etc.)
 router.patch(
-  '/alojamientos/:id/estado', 
-  authenticateToken, 
-  authorizeRoles('ARRENDATARIO'), 
+  '/alojamientos/:id/estado',
+  authenticateToken,
+  authorizeRoles('ARRENDATARIO'),
   (req: Request, res: Response) => alojamientoController.cambiarEstado(req, res)
 );
 
 // POST - Duplicar/Clonar un alojamiento existente (Patrón Prototype)
 router.post(
-  '/alojamientos/:id/duplicar', 
-  authenticateToken, 
-  authorizeRoles('ARRENDATARIO'), 
+  '/alojamientos/:id/duplicar',
+  authenticateToken,
+  authorizeRoles('ARRENDATARIO'),
   (req: Request, res: Response) => alojamientoController.duplicar(req, res)
 );
 
 // DELETE - Eliminar un alojamiento existente (Protegido por JWT y Rol ARRENDATARIO)
 router.delete(
-  '/alojamientos/:id', 
-  authenticateToken, 
-  authorizeRoles('ARRENDATARIO'), 
+  '/alojamientos/:id',
+  authenticateToken,
+  authorizeRoles('ARRENDATARIO'),
   (req: Request, res: Response) => alojamientoController.eliminar(req, res)
 );
 
@@ -110,7 +109,7 @@ router.delete(
 router.patch(
   '/alojamientos/:id/roomie',
   authenticateToken,
-  authorizeRoles('ESTUDIANTE'), // O el rol correspondiente al Inquilino
+  authorizeRoles('ESTUDIANTE'), 
   (req: Request, res: Response) => roomieController.alternarBusquedaRoomie(req, res)
 );
 
@@ -133,7 +132,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 // ==========================================
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
-  console.log(`  └─ Auth:        http://localhost:${PORT}/api/auth`);
-  console.log(`  └─ Usuarios:    http://localhost:${PORT}/api/users`);
+  console.log(`  └─ Auth:         http://localhost:${PORT}/api/auth`);
+  console.log(`  └─ Usuarios:     http://localhost:${PORT}/api/users`);
   console.log(`  └─ Alojamientos: http://localhost:${PORT}/api/alojamientos`);
 });

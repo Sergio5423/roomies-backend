@@ -13,8 +13,10 @@ router.get('/profile', UserController.getProfile);
 // PUT /api/users/profile - Actualizar perfil
 router.put('/profile', UserController.updateProfile);
 
+// 🆕 GET /api/users/roomies/activos - Listar estudiantes y los alojamientos que marcaron buscando roomie
+router.get('/roomies/activos', UserController.getInquilinosBuscandoRoomie);
+
 // GET /api/users/:id - Obtener un usuario por su ID
-// IMPORTANTE: Definir DESPUÉS de /profile para evitar que "profile" sea capturado como un ID
 router.get('/:id', UserController.getUserById);
 
 export default router;

@@ -1,5 +1,8 @@
 import type { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
+import { SupabaseInquilinoRepository } from '../repository/SupabaseInquilinoRepository';
+
+const inquilinoRepo = new SupabaseInquilinoRepository();
 
 export class UserController {
   /**
@@ -67,6 +70,43 @@ export class UserController {
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message || 'Error al obtener el usuario.' });
+    }
+  }
+
+  public static async getInquilinosBuscandoRoomie(req: Request, res: Response): Promise<void> {
+    try {
+      const resultados = await inquilinoRepo.obtenerInquilinosBuscandoRoomie();
+
+      // Formateamos la salida para que sea fácil de consumir en el frontend
+      const respuesta = resultados.map(({ inquilino, publicaciones }) => ({
+        estudiante: {
+          id: inquilino.getId(),
+          nombre: `${inquilino.getFirstName()} ${inquilino.getLastName()}`,
+          email: inquilino.getEmail(),
+          telefono: inquilino.getTelefono()
+        },
+        publicacionesRoomie: publicaciones.map(pub => ({
+          id: pub.getId(),
+          descripcion: pub.getDescripcion(),
+          estado: pub.getEstado(),
+          fecha: pub.getFecha(),
+          alojamiento: {
+            id: pub.getAlojamiento().getId(),
+            titulo: pub.getAlojamiento().getTitulo(),
+            tipo: pub.getAlojamiento().getTipoAlojamientoNombre(),
+            precio: pub.getAlojamiento().getPrecio().getPrecioMensual(),
+            ubicacion: pub.getAlojamiento().getUbicacion(),
+            caracteristicas: pub.getAlojamiento().getCaracteristicas()
+          }
+        }))
+      }));
+
+      res.status(200).json({
+        mensaje: "Estudiantes y alojamientos buscando roomie obtenidos con éxito",
+        data: respuesta
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   }
 }
