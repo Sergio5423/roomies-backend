@@ -6,36 +6,38 @@ import { supabase } from '../config/supabase';
 export class SupabaseAlojamientoRepository implements IAlojamientoRepository {
 
 async guardar(alojamiento: Alojamiento, propietarioId: string): Promise<Alojamiento> {
+  const payload: any = {
+    id: alojamiento.getId(),
+    landlord_id: propietarioId || alojamiento.getLandlordId() || '',
+    title: alojamiento.getTitulo(),
+    description: alojamiento.getDescripcion(),
+    type: alojamiento.getTipoAlojamiento().getNombre(),
+    images: alojamiento.getImagenes(),
+    average_rating: alojamiento.getPuntuacionPromedio(),
+    status: alojamiento.getEstado(),
+    location: {
+      direccion: alojamiento.getUbicacion().getDireccion(),
+      ciudad: alojamiento.getUbicacion().getCiudad(),
+      barrio: alojamiento.getUbicacion().getBarrio(),
+      distancia: alojamiento.getUbicacion().getDistancia(),
+      latitud: alojamiento.getUbicacion().getLatitud(),
+      longitud: alojamiento.getUbicacion().getLongitud()
+    },
+    features: {
+      numeroCuartos: alojamiento.getCaracteristicas().getNumeroCuartos(),
+      metrosCuadrados: alojamiento.getCaracteristicas().getMetrosCuadrados(),
+      capacidad: alojamiento.getCaracteristicas().getCapacidad(),
+      amoblado: alojamiento.getCaracteristicas().getAmoblado(),
+      buscandoRoomie: alojamiento.getCaracteristicas().getBuscandoRoomie()
+    },
+    price: {
+      precioMensual: alojamiento.getPrecio().getPrecioMensual()
+    }
+  };
+
   const { data, error } = await supabase
     .from('housing')
-    .insert({
-      id: alojamiento.getId(),
-      landlord_id: propietarioId, // 👈 Usar la variable pasada por parámetro
-      title: alojamiento.getTitulo(),
-      description: alojamiento.getDescripcion(),
-      type: alojamiento.getTipoAlojamiento().getNombre(),
-      images: alojamiento.getImagenes(),
-      average_rating: alojamiento.getPuntuacionPromedio(),
-      status: alojamiento.getEstado(),
-      location: {
-        direccion: alojamiento.getUbicacion().getDireccion(),
-        ciudad: alojamiento.getUbicacion().getCiudad(),
-        barrio: alojamiento.getUbicacion().getBarrio(),
-        distancia: alojamiento.getUbicacion().getDistancia(),
-        latitud: alojamiento.getUbicacion().getLatitud(),
-        longitud: alojamiento.getUbicacion().getLongitud()
-      },
-      features: {
-        numeroCuartos: alojamiento.getCaracteristicas().getNumeroCuartos(),
-        metrosCuadrados: alojamiento.getCaracteristicas().getMetrosCuadrados(),
-        capacidad: alojamiento.getCaracteristicas().getCapacidad(),
-        amoblado: alojamiento.getCaracteristicas().getAmoblado(),
-        buscandoRoomie: alojamiento.getCaracteristicas().getBuscandoRoomie()
-      },
-      price: {
-        precioMensual: alojamiento.getPrecio().getPrecioMensual()
-      }
-    })
+    .insert(payload)
     .select()
     .single();
 

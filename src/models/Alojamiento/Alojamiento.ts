@@ -2,6 +2,7 @@ import type { TipoAlojamiento } from "./TipoAlojamiento";
 import { Caracteristica } from "./Caracteristica";
 import { Precio } from "./Precio";
 import { Ubicacion } from "./Ubicacion";
+import { ReglaFactory } from '../Factory/ReglaFactory';
 import { Regla } from "./Regla";
 import type { Clonable } from '../Prototype/Clonable';
 import { TipoAlojamientoFactory } from '../Factory/TipoAlojamientoFactory';
@@ -19,8 +20,8 @@ export class Alojamiento implements Clonable<Alojamiento> {
   private ubicacion: Ubicacion;
   private caracteristicas: Caracteristica;
   private precio: Precio;
-  public landlord_id?: string;
-  public propietarioId?: string;
+  public landlord_id?: string | undefined;
+  public propietarioId?: string | undefined;
 
   constructor(
     id: string,
@@ -56,9 +57,9 @@ export class Alojamiento implements Clonable<Alojamiento> {
   // ==========================================
   public clonar(): Alojamiento {
     const tipoClonado = TipoAlojamientoFactory.crear(this.tipoAlojamiento.getNombre());
-    
+
     const reglasClonadas = this.getReglas().map(
-      (r) => new Regla(uuidv4(), r.getDescripcion())
+      (r) => ReglaFactory.obtenerRegla(uuidv4(), r.getDescripcion())
     );
     tipoClonado.setReglas(reglasClonadas);
 
@@ -144,5 +145,5 @@ export class Alojamiento implements Clonable<Alojamiento> {
 
   public getReglas(): Regla[] {
     return this.tipoAlojamiento.getReglas();
-  }  
+  }
 }
