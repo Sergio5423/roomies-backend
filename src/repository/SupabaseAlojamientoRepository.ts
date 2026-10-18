@@ -6,6 +6,8 @@ import { supabase } from '../config/supabase';
 export class SupabaseAlojamientoRepository implements IAlojamientoRepository {
 
 async guardar(alojamiento: Alojamiento, propietarioId: string): Promise<Alojamiento> {
+  const ubicacion = alojamiento.getUbicacion(); // Instancia de la nueva clase Ubicacion con Flyweight
+  
   const payload: any = {
     id: alojamiento.getId(),
     landlord_id: propietarioId || alojamiento.getLandlordId() || '',
@@ -16,12 +18,12 @@ async guardar(alojamiento: Alojamiento, propietarioId: string): Promise<Alojamie
     average_rating: alojamiento.getPuntuacionPromedio(),
     status: alojamiento.getEstado(),
     location: {
-      direccion: alojamiento.getUbicacion().getDireccion(),
-      ciudad: alojamiento.getUbicacion().getCiudad(),
-      barrio: alojamiento.getUbicacion().getBarrio(),
-      distancia: alojamiento.getUbicacion().getDistancia(),
-      latitud: alojamiento.getUbicacion().getLatitud(),
-      longitud: alojamiento.getUbicacion().getLongitud()
+      direccion: ubicacion.getDireccion(),
+      ciudad: ubicacion.getCiudad(), //Flyewight
+      barrio: ubicacion.getBarrio(), //Flyweight
+      distancia: ubicacion.getDistancia(),
+      latitud: ubicacion.getLatitud(),
+      longitud: ubicacion.getLongitud()
     },
     features: {
       numeroCuartos: alojamiento.getCaracteristicas().getNumeroCuartos(),
@@ -43,6 +45,38 @@ async guardar(alojamiento: Alojamiento, propietarioId: string): Promise<Alojamie
 
   if (error) {
     throw new Error(`Error al guardar la publicación: ${error.message}`);
+  }
+
+  return alojamiento;
+}
+
+async actualizar(alojamiento: Alojamiento): Promise<Alojamiento> {
+  const ubicacion = alojamiento.getUbicacion();
+
+  const { error } = await supabase
+    .from('housing')
+    .update({
+      title: alojamiento.getTitulo(),
+      description: alojamiento.getDescripcion(),
+      type: alojamiento.getTipoAlojamientoNombre(),
+      images: alojamiento.getImagenes(),
+      status: alojamiento.getEstado(),
+      location: {
+        direccion: ubicacion.getDireccion(),
+        ciudad: ubicacion.getCiudad(),
+        barrio: ubicacion.getBarrio(),
+        distancia: ubicacion.getDistancia(),
+        latitud: ubicacion.getLatitud(),
+        longitud: ubicacion.getLongitud()
+      },
+      features: alojamiento.getCaracteristicas(),
+      price: alojamiento.getPrecio(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', alojamiento.getId());
+
+  if (error) {
+    throw new Error(`Error al actualizar el alojamiento: ${error.message}`);
   }
 
   return alojamiento;
@@ -71,29 +105,6 @@ async guardar(alojamiento: Alojamiento, propietarioId: string): Promise<Alojamie
     return data.map((h) => AlojamientoMapper.desdeRegistro(h));
   }
 
-  async actualizar(alojamiento: Alojamiento): Promise<Alojamiento> {
-    const { error } = await supabase
-      .from('housing')
-      .update({
-        title: alojamiento.getTitulo(),
-        description: alojamiento.getDescripcion(),
-        type: alojamiento.getTipoAlojamientoNombre(),
-        images: alojamiento.getImagenes(),
-        status: alojamiento.getEstado(),
-        location: alojamiento.getUbicacion(),
-        features: alojamiento.getCaracteristicas(),
-        price: alojamiento.getPrecio(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', alojamiento.getId());
-
-    if (error) {
-      throw new Error(`Error al actualizar el alojamiento: ${error.message}`);
-    }
-
-    return alojamiento;
-  }
-
   async eliminar(id: string): Promise<boolean> {
     const { error } = await supabase
       .from('housing')
@@ -103,8 +114,8 @@ async guardar(alojamiento: Alojamiento, propietarioId: string): Promise<Alojamie
     return !error;
   }
 
-  async actualizarBusquedaRoomie(id: string, buscandoRoomie: boolean): Promise<boolean> {
-    // 1. Obtener el registro actual para conservar las demás características
+async actualizarBusquedaRoomie(id: string, buscandoRoomie: boolean): Promise<boolean> {
+    // 1. Obtenemos el registro completo o la columna features actual de la tabla housing
     const { data: current, error: fetchError } = await supabase
       .from('housing')
       .select('features')
@@ -112,15 +123,20 @@ async guardar(alojamiento: Alojamiento, propietarioId: string): Promise<Alojamie
       .single();
 
     if (fetchError || !current) {
-      throw new Error("Alojamiento no encontrado");
+      throw new Error("Alojamiento no encontrado en la base de datos.");
     }
 
+    // 2. Nos aseguramos de mantener un objeto base seguro combinando las propiedades anteriores
+    const featuresActuales = typeof current.features === 'object' && current.features !== null 
+      ? current.features 
+      : {};
+
     const updatedFeatures = {
-      ...current.features,
-      buscandoRoomie
+      ...featuresActuales,
+      buscandoRoomie: Boolean(buscandoRoomie) // Forzamos booleano explícito
     };
 
-    // 2. Actualizar en Supabase
+    // 3. Actualizamos en Supabase el campo JSONB de manera directa
     const { error } = await supabase
       .from('housing')
       .update({ 
@@ -130,7 +146,7 @@ async guardar(alojamiento: Alojamiento, propietarioId: string): Promise<Alojamie
       .eq('id', id);
 
     if (error) {
-      throw new Error(`Error al actualizar el estado de roomie: ${error.message}`);
+      throw new Error(`Error al actualizar el estado de roomie en housing: ${error.message}`);
     }
 
     return true;

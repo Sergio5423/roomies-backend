@@ -1,27 +1,54 @@
+// src/models/Alojamiento/Ubicacion.ts
+import { UbicacionFlyweight } from '../Flyweight/UbicacionFlyweight';
+import { UbicacionFactory } from '../Factory/UbicacionFactory';
+
 export class Ubicacion {
+  private flyweight: UbicacionFlyweight;
+  private direccion: string;
+  private distancia: number;
+  private latitud: number;
+  private longitud: number;
+
   constructor(
-    private readonly direccion: string,
-    private readonly ciudad: string,
-    private readonly barrio: string,
-    private readonly distancia: string,
-    private readonly latitud: number,
-    private readonly longitud: number
+    direccion: string,
+    ciudad: string,
+    barrio: string,
+    distancia: number,
+    latitud: number,
+    longitud: number
   ) {
-    if (!direccion.trim() || !ciudad.trim()) {
-      throw new Error("La dirección y la ciudad son obligatorias.");
-    }
-    if (latitud < -90 || latitud > 90) {
-      throw new Error("La latitud debe estar entre -90 y 90.");
-    }
-    if (longitud < -180 || longitud > 180) {
-      throw new Error("La longitud debe estar entre -180 y 180.");
-    }
+    this.direccion = direccion;
+    this.distancia = distancia;
+    this.latitud = latitud;
+    this.longitud = longitud;
+
+    // Obtenemos o reutilizamos la instancia compartida a través de la Fábrica
+    this.flyweight = UbicacionFactory.obtenerInstancia(ciudad, barrio);
   }
 
-  public getDireccion(): string { return this.direccion; }
-  public getCiudad(): string { return this.ciudad; }
-  public getBarrio(): string { return this.barrio; }
-  public getDistancia(): string { return this.distancia; }
-  public getLatitud(): number { return this.latitud; }
-  public getLongitud(): number { return this.longitud; }
+  // Métodos que delegan al estado intrínseco compartido
+  public getCiudad(): string {
+    return this.flyweight.getCiudad();
+  }
+
+  public getBarrio(): string {
+    return this.flyweight.getBarrio();
+  }
+
+  // Getters para el estado extrínseco (único por alojamiento)
+  public getDireccion(): string {
+    return this.direccion;
+  }
+
+  public getDistancia(): number {
+    return this.distancia;
+  }
+
+  public getLatitud(): number {
+    return this.latitud;
+  }
+
+  public getLongitud(): number {
+    return this.longitud;
+  }
 }

@@ -12,7 +12,7 @@ export class RoomieController {
             }
 
             const alojamientoId = req.params.id;
-            const estudianteId = req.user.id; // 👈 ID del estudiante obtenido del token JWT
+            const estudianteId = req.user.id; // ID del estudiante obtenido del token JWT
             const { buscandoRoomie } = req.body;
 
             if (!alojamientoId || typeof alojamientoId !== 'string') {
